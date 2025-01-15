@@ -1,0 +1,8 @@
+{
+    "python.defaultInterpreterPath": "/proj/rep-learning-robotics/users/x_nonra/.conda_envs/glocal/bin/python",
+    "python.languageServer": "Pylance",
+    "python.analysis.typeCheckingMode": "basic",  // or "strict" for more checks
+    "python.analysis.autoImportCompletions": true,
+    "python.analysis.completeFunctionParens": true,
+    "python.analysis.useLibraryCodeForTypes": true
+}

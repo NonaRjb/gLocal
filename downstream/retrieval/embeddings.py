@@ -58,6 +58,36 @@ class Flickr30kCaptions(Dataset):
         return len(self.captions)
 
 
+def compute_things_image_embeddings(model_name, data_root, embeddings_folder, split='train', device='cuda'):
+    model, _, preprocess = open_clip.create_model_and_transforms(model_name, pretrained='openai')
+    model = model.to(device)
+    img_parent_dir  = data_root
+    img_metadata = np.load(os.path.join(img_parent_dir, 'image_metadata.npy'), allow_pickle=True).item()
+    total_images = len(img_metadata[f'{split}_img_files'])
+    print(f"Split = {split}")
+    embeddings = []
+    for item in range(total_images):
+        if split == 'train':
+            img_file = os.path.join(img_parent_dir, 'training_images', 
+                            img_metadata['train_img_concepts'][item], img_metadata['train_img_files'][item])
+        else:
+            img_file = os.path.join(img_parent_dir, 'test_images', 
+                            img_metadata['test_img_concepts'][item], img_metadata['test_img_files'][item])
+        img = pil_loader(img_file)
+        img = preprocess(img).to(device)
+        with torch.no_grad():
+            e = model.encode_image(img.unsqueeze(0)).detach().cpu().numpy()
+        embeddings.append(e)
+        # np.save(img_file.replace(".jpg", f"_gLocal_{model_name.lower()}_noalign.npy"), e)
+        if item % 1000 == 0:
+            print(f"{item} items out of {total_images} done")
+            print(f"e.shape = {e.shape}")
+    
+    embeddings = np.array(embeddings).squeeze()
+    print(f"embeddings.shape = {embeddings.shape}")
+    np.save(os.path.join(embeddings_folder, f'{split}_{model_name.lower()}_noalign.npy'), embeddings)
+
+
 def compute_image_embeddings(model, preprocess, data_root="flickr30k_images", device='cuda'):
     dataset = Flickr30kImages(root=data_root, transform=preprocess)
     loader = DataLoader(dataset, batch_size=32)

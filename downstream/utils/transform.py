@@ -71,7 +71,7 @@ class THINGSFeatureTransform(object):
         features = (features - self.things_mean) / self.things_std
         if self.new_transform:
             if "weights" in self.variables:
-                features = features @ self.variables["weights"]
+                features = features.type(torch.float32) @ self.variables["weights"].type(torch.float32)
                 if "bias" in self.variables:
                     features += self.variables["bias"]
             else:
